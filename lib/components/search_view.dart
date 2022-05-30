@@ -20,7 +20,7 @@ class _SearchViewState extends State<SearchView> {
         decoration: InputDecoration(
           border: OutlineInputBorder(
             borderSide: BorderSide(
-              color: Colors.grey,
+              color: Colors.black26,
               width: 0.5
             ),
             borderRadius: BorderRadius.all(Radius.circular(8))

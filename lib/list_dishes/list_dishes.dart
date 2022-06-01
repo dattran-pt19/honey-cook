@@ -39,7 +39,6 @@ class _ListDishesViewState extends State<ListDishesView> {
         title: const Text("Danh sách món ăn",
             style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        backgroundColor: Colors.white,
         elevation: 0,
       ),
       body: Container(

@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:honey_cook/firebase_options.dart';
 import 'package:honey_cook/list_api_test/list_api.dart';
 import 'package:honey_cook/list_dishes/list_dishes.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
+import 'file_storage_test/file_storage_test.dart';
+
+final storage = FirebaseStorage.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<AppBarModel> _listTabs = [
     AppBarModel(view: const ListDishesView(), icon: Icons.view_list),
     AppBarModel(view: const ListApi(), icon: Icons.view_day),
-    AppBarModel(view: const Center(child: Text("Cá nhân"),), icon: Icons.person)
+    AppBarModel(view: FileStorageTest(), icon: Icons.person)
   ];
 
   @override

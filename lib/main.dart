@@ -1,13 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:honey_cook/create_dish/create_dish.dart';
 import 'package:honey_cook/firebase_options.dart';
-import 'package:honey_cook/list_api_test/list_api.dart';
 import 'package:honey_cook/list_dishes/list_dishes.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import 'file_storage_test/file_storage_test.dart';
 
 final storage = FirebaseStorage.instance;
+final db = FirebaseFirestore.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +28,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Honey cook',
       theme: ThemeData(
-        primarySwatch: Colors.amber,
+        primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'List of dish'),
     );
@@ -50,10 +53,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  openCreateDish() {
+    Navigator.of(context).push(
+      CupertinoPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => const CreateDish()
+      )
+    );
+  }
+
   final List<AppBarModel> _listTabs = [
-    AppBarModel(view: const ListDishesView(), icon: Icons.view_list),
-    AppBarModel(view: const ListApi(), icon: Icons.view_day),
-    AppBarModel(view: FileStorageTest(), icon: Icons.person)
+    AppBarModel(index: 0, view: const ListDishesView(), icon: Icons.view_list),
+    AppBarModel(index: 1, view: FileStorageTest(), icon: Icons.person)
   ];
 
   @override
@@ -63,28 +74,37 @@ class _MyHomePageState extends State<MyHomePage> {
         index: _selectedIndex,
         children: _listTabs.map((tab) => tab.view).toList(),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        items: _listTabs
-            .map((tab) =>
-                BottomNavigationBarItem(
-                    icon: Icon(tab.icon),
-                    label: ""
-                ))
-            .toList(),
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber,
-        onTap: _onItemTapped,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 4,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: _listTabs.map((tab) => IconButton(
+              onPressed: () => _onItemTapped(tab.index),
+              icon: Icon(
+                tab.icon,
+                color: tab.index == _selectedIndex ? Colors.blue : Colors.black26,
+              )
+          )).toList(),
+        )
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          openCreateDish();
+        },
+        child: const Icon(Icons.add)
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
 
 class AppBarModel {
+  int index;
   Widget view;
   IconData icon;
 
-  AppBarModel({required this.view, required this.icon});
+  AppBarModel({required this.index, required this.view, required this.icon});
 }

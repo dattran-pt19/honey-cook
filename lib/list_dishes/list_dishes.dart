@@ -1,26 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:honey_cook/components/search_view.dart';
 import 'package:honey_cook/list_dishes/items/dish_item.dart';
-import 'package:honey_cook/model/dish_filter_model.dart';
-import 'package:honey_cook/model/dish_model.dart';
-
-final List<DishModel> listDemoDish = [
-  DishModel(id: 0, name: "Cơm thịt kho", listFilter: [DishFilter.rice]),
-  DishModel(id: 0, name: "Salad Nga", listFilter: [DishFilter.vegetable]),
-  DishModel(id: 0, name: "Nước dưa hấu", listFilter: [DishFilter.drink]),
-  DishModel(
-      id: 0,
-      name: "Gà nướng tỏi",
-      listFilter: [DishFilter.rice, DishFilter.meat]),
-  DishModel(
-      id: 0,
-      name: "Mì xào bò mướp",
-      listFilter: [DishFilter.rice, DishFilter.meat, DishFilter.vegetable]),
-  DishModel(
-      id: 0,
-      name: "Sườn xào chua ngọt",
-      listFilter: [DishFilter.drink, DishFilter.meat])
-];
+import 'package:honey_cook/main.dart';
+import '../model/dish_model.dart';
 
 class ListDishesView extends StatefulWidget {
   const ListDishesView({Key? key}) : super(key: key);
@@ -32,12 +14,40 @@ class ListDishesView extends StatefulWidget {
 }
 
 class _ListDishesViewState extends State<ListDishesView> {
+  var isLoaded = false;
+  List<DishModel> listDishes = [];
+  final dishesRef = db.collection("dishes").doc("dattran-dishes");
+
+  @override
+  initState() {
+    super.initState();
+    getData();
+  }
+  
+  getData() async {
+    dishesRef.get().then((value) {
+      try {
+        final data = (value.data() as Map<String,
+            dynamic>)["listDishes"] as List<dynamic>;
+        listDishes = data.map((value) {
+          return DishModel.fromJson(value);
+        }).toList();
+      } catch(e) {
+        debugPrint("Error get doc ${e.toString()}");
+        listDishes = [];
+      }
+    },
+    onError: (e) {
+      debugPrint("Error get doc ref -- ${e.toString()}");
+      listDishes = [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Danh sách món ăn",
-            style: TextStyle(color: Colors.black)),
+        title: const Text("Danh sách món ăn"),
         centerTitle: true,
         elevation: 0,
       ),
@@ -45,14 +55,16 @@ class _ListDishesViewState extends State<ListDishesView> {
         color: Colors.white,
         child: Column(
           children: [
-            SearchView(),
+            const SearchView(),
             Expanded(
-                child: ListView.builder(
-                scrollDirection: Axis.vertical,
-                itemCount: listDemoDish.length,
-                itemBuilder: (context, index) {
-                  return DishItem(model: listDemoDish[index]);
-                }),
+              child: listDishes.isEmpty
+                  ? const Center(child: Text("Không có món ăn nào"))
+                  : ListView.builder(
+                      scrollDirection: Axis.vertical,
+                      itemCount: listDishes.length,
+                      itemBuilder: (context, index) {
+                        return DishItem(model: listDishes[index]);
+                      }),
               flex: 1,
             )
           ],

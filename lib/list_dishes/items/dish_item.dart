@@ -13,31 +13,18 @@ class DishItem extends StatefulWidget {
 }
 
 class _DishItemState extends State<DishItem> {
-  final List<Widget> listWidget = [];
-
   @override
   Widget build(BuildContext context) {
-    listWidget.clear();
-    for (int i = 0; i < widget.model.listFilter.length; i++) {
-      if (i > 1) {
-        break;
-      }
-      listWidget.add(Chip(
-          padding: const EdgeInsets.all(6),
-          label: Icon(widget.model.listFilter[i].icon, size: 12)));
-    }
-    listWidget.add(const SizedBox(width: 8));
-    listWidget.add(Text("Đã ăn ${widget.model.eatenCount} lần",
-        style: const TextStyle(fontSize: 12, color: Colors.black54)));
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      height: 120,
+      height: 100,
       child: Row(
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints.tightForFinite(width: 120),
-            child: Image.network(widget.model.image, fit: BoxFit.cover),
+            child: widget.model.image?.isNotEmpty == true
+                ? Image.network(widget.model.image!, fit: BoxFit.cover)
+                : const Image(image: AssetImage('assets/motor.jpg')),
           ),
           Expanded(
             child: Container(
@@ -50,7 +37,7 @@ class _DishItemState extends State<DishItem> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.model.name,
+                            widget.model.name ?? "",
                             style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -71,15 +58,15 @@ class _DishItemState extends State<DishItem> {
                       ),
                       flex: 1),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: listWidget,
-                          ),
+                          child: Text("Đã ăn ${widget.model.eatenNumber} lần",
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54)),
                           flex: 1),
                       Icon(
-                          widget.model.isFavourite
+                          widget.model.love == true
                               ? Icons.star
                               : Icons.star_border,
                           color: Colors.amber)

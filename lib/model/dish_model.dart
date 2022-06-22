@@ -57,3 +57,16 @@ class DishModel {
     };
   }
 }
+
+class SelectedDishModel {
+  SelectedDishModel({ required this.dish });
+
+  int count = 1;
+  DishModel dish;
+
+  getId() => dish.id ?? 0;
+
+  increase() {
+    count += 1;
+  }
+}

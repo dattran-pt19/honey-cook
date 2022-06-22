@@ -1,14 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_observer/Observable.dart';
+import 'package:flutter_observer/Observer.dart';
+import 'package:honey_cook/base/constants.dart';
+import 'package:honey_cook/base/singleton.dart';
+import 'package:honey_cook/create_dish/create_dish.dart';
 import 'package:honey_cook/firebase_options.dart';
-import 'package:honey_cook/list_api_test/list_api.dart';
-import 'package:honey_cook/list_dishes/list_dishes.dart';
+import 'package:honey_cook/tab1_list_dishes/list_dishes.dart';
+import 'package:honey_cook/tab2_list_selected/list_selected_dishes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -20,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Honey cook',
       theme: ThemeData(
-        primarySwatch: Colors.amber,
+        primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'List of dish'),
     );
@@ -36,8 +40,9 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with Observer {
   int _selectedIndex = 0;
+  int _selectedDishesCount = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -45,41 +50,103 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _openCreateDish() {
+    Navigator.of(context).push(CupertinoPageRoute(
+        fullscreenDialog: true, builder: (context) => const CreateDish()));
+  }
+
   final List<AppBarModel> _listTabs = [
-    AppBarModel(view: const ListDishesView(), icon: Icons.view_list),
-    AppBarModel(view: const ListApi(), icon: Icons.view_day),
-    AppBarModel(view: const Center(child: Text("Cá nhân"),), icon: Icons.person)
+    AppBarModel(index: 0, view: const ListDishesView(), icon: Icons.view_list),
+    AppBarModel(index: 1, view: const ListSelectedDishes(), icon: Icons.person)
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _listTabs.map((tab) => tab.view).toList(),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        items: _listTabs
-            .map((tab) =>
-                BottomNavigationBarItem(
-                    icon: Icon(tab.icon),
-                    label: ""
-                ))
-            .toList(),
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber,
-        onTap: _onItemTapped,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-      ),
-    );
+  initState() {
+    Observable.instance.addObserver(this);
+    super.initState();
   }
+
+  @override
+  dispose() {
+    Observable.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  update(Observable observable, String? notifyName, Map? map) {
+    if (notifyName == observableChangeSelectedDishes) {
+      setState(() {
+        final listCount = listSelectedDishes.map((e) => e.count);
+        _selectedDishesCount = listCount.isEmpty ? 0 : listCount.reduce((value, element) => value + element);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return buildMainView();
+  }
+
+  Widget buildMainView() => Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _listTabs.map((tab) => tab.view).toList(),
+        ),
+        bottomNavigationBar: buildBottomBar(),
+        floatingActionButton: FloatingActionButton(
+            onPressed: _openCreateDish, child: const Icon(Icons.add)),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      );
+
+  Widget buildBottomBar() => BottomAppBar(
+      color: Colors.white,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: _listTabs
+            .map((tab) => GestureDetector(
+                onTap: () => _onItemTapped(tab.index),
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        tab.icon,
+                        color: tab.index == _selectedIndex
+                            ? Colors.blue
+                            : Colors.black26,
+                      ),
+                      Visibility(
+                        visible: _selectedDishesCount > 0 && tab.index == 1,
+                        child: Positioned(
+                          top: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: const BoxDecoration(
+                                shape: BoxShape.circle, color: Colors.red),
+                            alignment: Alignment.center,
+                            child: Text('$_selectedDishesCount', style: const TextStyle(color: Colors.white),),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                )))
+            .toList(),
+      ));
 }
 
 class AppBarModel {
+  int index;
   Widget view;
   IconData icon;
 
-  AppBarModel({required this.view, required this.icon});
+  AppBarModel({required this.index, required this.view, required this.icon});
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SearchView extends StatefulWidget {
-  const SearchView({Key? key}) : super(key: key);
+  const SearchView({Key? key, required this.onChangeText}) : super(key: key);
+
+  final ValueChanged<String?> onChangeText;
 
   @override
   State<StatefulWidget> createState() {
@@ -11,13 +13,19 @@ class SearchView extends StatefulWidget {
 
 class _SearchViewState extends State<SearchView> {
   @override
+  initState() {
+    super.initState();
+
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       color: Colors.white,
-      child: const TextField(
-        decoration: InputDecoration(
+      child: TextFormField(
+        decoration: const InputDecoration(
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: Colors.black26,
@@ -27,6 +35,7 @@ class _SearchViewState extends State<SearchView> {
           ),
           labelText: "Nhập tên món"
         ),
+        onChanged: widget.onChangeText,
       ),
     );
   }

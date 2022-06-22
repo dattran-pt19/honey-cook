@@ -1,23 +1,72 @@
-import 'dart:math';
-
-import 'package:honey_cook/model/dish_filter_model.dart';
-
-final List<String> listDemoImage = [
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1160&q=80",
-  "https://images.unsplash.com/photo-1484723091739-30a097e8f929?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=898&q=80",
-  "https://images.unsplash.com/photo-1467003909585-2f8a72700288?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
-  "https://images.unsplash.com/photo-1432139509613-5c4255815697?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=770&q=80",
-  "https://images.unsplash.com/photo-1628521061262-19b5cdb7eee5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-];
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DishModel {
-  int id;
-  String image = listDemoImage[Random().nextInt(listDemoImage.length - 1)];
-  String name;
+  int? id;
+  String? image;
+  String? name;
   String? description;
-  List<DishFilterModel> listFilter;
-  bool isFavourite = false;
-  int eatenCount = 0;
+  bool? love = false;
+  int? eatenNumber = 0;
+  String? recipe;
 
-  DishModel({required this.id, required this.name, required this.listFilter});
+  DishModel({
+    this.id, this.image,
+    this.name, this.description,
+    this.love, this.eatenNumber,
+    this.recipe
+  });
+
+  factory DishModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> snapshot,
+      SnapshotOptions? options) {
+    final data = snapshot.data();
+    return DishModel(
+        id: data?['id'],
+        name: data?['name'],
+        image: data?['image'],
+        description: data?['description'],
+        love: data?['love'],
+        eatenNumber: data?['eatenNumber'],
+        recipe: data?['recipe']
+    );
+  }
+
+  factory DishModel.fromJson(
+      Map<String, dynamic> json) {
+    final data = json;
+    return DishModel(
+        id: data['id'],
+        name: data['name'],
+        image: data['image'],
+        description: data['description'],
+        love: data['love'],
+        eatenNumber: data['eatenNumber'],
+        recipe: data['recipe']
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
+    return {
+      "id": id,
+      "name": name,
+      "image": image,
+      "description": description,
+      "love": love,
+      "eatenNumber": eatenNumber,
+      "recipe": recipe
+    };
+  }
+}
+
+class SelectedDishModel {
+  SelectedDishModel({ required this.dish });
+
+  int count = 1;
+  DishModel dish;
+
+  getId() => dish.id ?? 0;
+
+  increase() {
+    count += 1;
+  }
 }
